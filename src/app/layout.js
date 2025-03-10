@@ -1,5 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import ClientSideMotion from "./components/ClientSideMotion";
+import MenuBubbles from "./components/MenuBubbles";
+import posts from "./data/posts";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,7 +23,17 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <div className="container">
+          {/* Left Column - Menu Bubbles */}
+          <div className="leftColumn">
+            <MenuBubbles posts={posts} />
+          </div>
+
+          {/* Right Column - Content Area */}
+          <div className="rightColumn">
+            <ClientSideMotion>{children}</ClientSideMotion>
+          </div>
+        </div>
       </body>
     </html>
   );
