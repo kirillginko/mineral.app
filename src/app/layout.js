@@ -23,15 +23,48 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <div className="container">
-          {/* Left Column - Menu Bubbles */}
-          <div className="leftColumn">
-            <MenuBubbles posts={posts} />
+        <div className="page-layout">
+          {/* Corners */}
+          <div className="border-container top-left-corner">
+            {/* Top Left Corner Content */}
+          </div>
+          <div className="border-container top-right-corner">
+            {/* Top Right Corner Content */}
+          </div>
+          <div className="border-container bottom-left-corner">
+            {/* Bottom Left Corner Content */}
+          </div>
+          <div className="border-container bottom-right-corner">
+            {/* Bottom Right Corner Content */}
           </div>
 
-          {/* Right Column - Content Area */}
-          <div className="rightColumn">
-            <ClientSideMotion>{children}</ClientSideMotion>
+          {/* Borders */}
+          <div className="border-container top-border">
+            {/* Top Border Content */}
+          </div>
+          <div className="border-container bottom-border">
+            {/* Bottom Border Content */}
+          </div>
+          <div className="border-container left-border">
+            {/* Left Border Content */}
+          </div>
+          <div className="border-container right-border">
+            {/* Right Border Content */}
+          </div>
+
+          {/* Main Content */}
+          <div className="main-section">
+            <div className="container">
+              {/* Left Column - Menu Bubbles */}
+              <div className="leftColumn">
+                <MenuBubbles posts={posts} />
+              </div>
+
+              {/* Right Column - Content Area */}
+              <div className="rightColumn">
+                <ClientSideMotion>{children}</ClientSideMotion>
+              </div>
+            </div>
           </div>
         </div>
       </body>

@@ -19,34 +19,109 @@ body {
   overflow: hidden;
 }
 
-.container {
-  display: flex;
+.page-layout {
+  display: grid;
+  grid-template-columns: 60px 1fr 60px;
+  grid-template-rows: 60px 1fr 60px;
   height: 100vh;
   width: 100vw;
-  margin: 0;
-  padding: 0;
+  background-color: #ddd9c8;
+  /* border: 2px dotted #000; */
+}
+
+.border-container {
+  background-color: #ddd9c8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  background-color: #cecb2b;
+}
+
+/* Corner containers */
+.top-left-corner {
+  grid-column: 1;
+  grid-row: 1;
+  border-right: 2px dotted #000;
+  border-bottom: 2px dotted #000;
+}
+
+.top-right-corner {
+  grid-column: 3;
+  grid-row: 1;
+  border-left: 2px dotted #000;
+  border-bottom: 2px dotted #000;
+}
+
+.bottom-left-corner {
+  grid-column: 1;
+  grid-row: 3;
+  border-right: 2px dotted #000;
+  border-top: 2px dotted #000;
+}
+
+.bottom-right-corner {
+  grid-column: 3;
+  grid-row: 3;
+  border-left: 2px dotted #000;
+  border-top: 2px dotted #000;
+}
+
+/* Border containers */
+.left-border {
+  grid-column: 1;
+  grid-row: 2;
+  border-right: 2px dotted #000;
+}
+
+.right-border {
+  grid-column: 3;
+  grid-row: 2;
+  border-left: 2px dotted #000;
+}
+
+.top-border {
+  grid-column: 2;
+  grid-row: 1;
+  border-bottom: 2px dotted #000;
+}
+
+.bottom-border {
+  grid-column: 2;
+  grid-row: 3;
+  border-top: 2px dotted #000;
+}
+
+.main-section {
+  grid-column: 2;
+  grid-row: 2;
+  background-color: #ddd9c8;
+  height: 100%;
+}
+
+.container {
+  display: flex;
+  background-color: #ddd9c8;
+  overflow: hidden;
+  height: 100%;
 }
 
 .leftColumn {
   width: 40%;
   padding: 20px;
-  border-right: 1px solid #000;
+  border-right: 2px dotted #000;
   overflow-y: auto;
-  height: 100vh;
+  height: 100%;
   box-sizing: border-box;
 }
 
 .rightColumn {
-  flex: 1; /* Simplified flex property */
-  background-color: #cecb2b;
+  flex: 1;
+  background-color: #ddd9c8;
   overflow-y: auto;
-  height: 100vh;
-  padding: 0; /* No padding here */
+  height: calc(100vh - 124px); /* Account for top and bottom borders + gaps */
+  padding: 20px;
   margin: 0;
   box-sizing: border-box;
-  position: relative; /* Make sure position is set */
 }
 
 @media (prefers-color-scheme: dark) {
