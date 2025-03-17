@@ -10,9 +10,11 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.8.0",
     "@prisma/client": "^6.5.0",
     "axios": "^1.8.3",
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.6.0",
     "framer-motion": "^12.4.11",
     "install": "^0.13.0",
     "next": "15.2.1",

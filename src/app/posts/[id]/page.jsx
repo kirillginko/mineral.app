@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import React from "react";
 import styles from "../../styles/PostStyles.module.css";
-import Description from "../../components/Description";
+import { PostHeader } from "../../components/PostHeader";
+import PostContent from "../../components/PostContent";
 
 export default function Post({ params }) {
+  // Unwrap params using React.use()
   const unwrappedParams = React.use(params);
-  const { id } = unwrappedParams;
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,16 +16,14 @@ export default function Post({ params }) {
   useEffect(() => {
     async function fetchPost() {
       try {
-        setLoading(true);
-        const response = await fetch(`/api/posts/${id}`);
-
+        const response = await fetch(`/api/posts/${unwrappedParams.id}`);
         if (!response.ok) {
-          throw new Error("Post not found");
+          throw new Error(`Error: ${response.status}`);
         }
-
         const data = await response.json();
         setPost(data);
       } catch (err) {
+        console.error("Failed to fetch post:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -32,7 +31,7 @@ export default function Post({ params }) {
     }
 
     fetchPost();
-  }, [id]);
+  }, [unwrappedParams.id]); // Use unwrappedParams instead of params
 
   if (loading) {
     return <div className={styles.loading}>Loading...</div>;
@@ -42,28 +41,13 @@ export default function Post({ params }) {
     return <div className={styles.error}>Post not found</div>;
   }
 
-  // Create a description object that matches the expected format for the Description component
-  const description = {
-    tracklist: post.tracklist || [],
-    credits: post.credits || [],
-  };
-
   return (
     <div className={styles.postsWrapper}>
       <div className={styles.postContainer}>
-        <h2 className={styles.postTitle}>{post.title}</h2>
-        <div className={styles.videoContainer}>
-          <iframe
-            src={`https://www.youtube.com/embed/${post.videoId}`}
-            title="YouTube video player"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
-        </div>
-        <div className={styles.postDescription}>
-          <Description description={description} />
-        </div>
+        {/* Post header with author info and date */}
+        <PostHeader author={post.author} date={post.publishDate} />
+
+        <PostContent post={post} />
       </div>
     </div>
   );

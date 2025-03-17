@@ -77,16 +77,22 @@ async function getLatestVideosFromChannel(channelId, maxResults = 10) {
  */
 async function getVideoDetails(videoId) {
   try {
+    // Specify 'snippet,contentDetails,statistics' parts and maxResults=1 for full data
     const response = await axios.get(`${YOUTUBE_API_URL}/videos`, {
       params: {
         part: "snippet,contentDetails,statistics",
         id: videoId,
         key: YOUTUBE_API_KEY,
+        maxResults: 1,
       },
     });
 
     if (response.data.items && response.data.items.length > 0) {
       const video = response.data.items[0];
+
+      // Log the full description to debug
+      console.log("Full video description:", video.snippet.description);
+
       return {
         id: video.id,
         title: video.snippet.title,

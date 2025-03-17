@@ -25,11 +25,12 @@ async function createPostFromVideoId(videoId, authorId) {
     .toString()
     .padStart(2, "0")}.${date.getFullYear()}`;
 
-  // Create the post with tracklist and credits
+  // Create the post with tracklist, credits, and description
   const post = await prisma.post.create({
     data: {
       title: formattedDate,
       videoId: videoDetails.id,
+      description: videoDetails.description,
       channelTitle: videoDetails.channelTitle,
       videoPublishedAt: videoDetails.publishedAt
         ? new Date(videoDetails.publishedAt)
@@ -57,6 +58,7 @@ async function createPostFromVideoId(videoId, authorId) {
     include: {
       tracklist: true,
       credits: true,
+      author: true,
     },
   });
 
@@ -71,12 +73,24 @@ export async function GET() {
         publishDate: "desc",
       },
       include: {
+        author: true,
         tracklist: true,
         credits: true,
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(posts);
+    // Add likeCount to each post
+    const postsWithLikeCount = posts.map((post) => ({
+      ...post,
+      likeCount: post._count.likes,
+    }));
+
+    return NextResponse.json(postsWithLikeCount);
   } catch (error) {
     console.error("Error fetching posts:", error);
     return NextResponse.json(

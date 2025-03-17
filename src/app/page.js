@@ -1,14 +1,16 @@
 import prisma from "@/lib/prisma";
 import styles from "./styles/PostStyles.module.css";
-import Description from "./components/Description";
+import PostContent from "./components/PostContent";
+import { PostHeader } from "./components/PostHeader";
 
 export default async function HomePage() {
-  // Fetch posts from the database
+  // Fetch posts from the database with author information
   const posts = await prisma.post.findMany({
     orderBy: {
       publishDate: "desc",
     },
     include: {
+      author: true, // Include the author information
       tracklist: true,
       credits: true,
     },
@@ -17,27 +19,10 @@ export default async function HomePage() {
   return (
     <div className={styles.postsWrapper}>
       {posts.map((post) => {
-        // Create a description object that matches the expected format for the Description component
-        const description = {
-          tracklist: post.tracklist || [],
-          credits: post.credits || [],
-        };
-
         return (
           <div key={post.id} className={styles.postContainer}>
-            <h2 className={styles.postTitle}>{post.title}</h2>
-            <div className={styles.videoContainer}>
-              <iframe
-                src={`https://www.youtube.com/embed/${post.videoId}`}
-                title="YouTube video player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </div>
-            <div className={styles.postDescription}>
-              <Description description={description} />
-            </div>
+            <PostHeader author={post.author} date={post.publishDate} />
+            <PostContent post={post} />
           </div>
         );
       })}

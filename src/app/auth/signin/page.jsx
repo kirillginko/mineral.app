@@ -28,7 +28,7 @@ export default function SignIn() {
       if (result?.error) {
         setError("Invalid email or password");
       } else {
-        router.push("/admin");
+        router.push("/");
         router.refresh();
       }
     } catch (error) {
