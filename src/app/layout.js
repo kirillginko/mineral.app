@@ -4,6 +4,7 @@ import ClientSideMotion from "./components/ClientSideMotion";
 import PostsProvider from "./components/PostsProvider";
 import TopBorder from "./components/TopBorder";
 import CornerImage from "./components/CornerImage";
+import AuthProvider from "./providers/AuthProvider";
 
 const ASCAfont = localFont({
   src: "./fonts/ASCA.ttf",
@@ -44,48 +45,50 @@ export default function RootLayout({ children }) {
       <body
         className={`${ASCAfont.variable} ${TwentyFiveTF.variable} ${Alternative1.variable} ${Alternative2.variable} ${Alternative3.variable}`}
       >
-        <div className="page-layout">
-          {/* Corners */}
-          <div className="border-container top-left-corner"></div>
-          <div className="border-container top-right-corner">
-            <CornerImage />
-          </div>
-          <div className="border-container bottom-left-corner">
-            {/* Bottom Left Corner Content */}
-          </div>
-          <div className="border-container bottom-right-corner">
-            {/* Bottom Right Corner Content */}
-          </div>
+        <AuthProvider>
+          <div className="page-layout">
+            {/* Corners */}
+            <div className="border-container top-left-corner"></div>
+            <div className="border-container top-right-corner">
+              <CornerImage />
+            </div>
+            <div className="border-container bottom-left-corner">
+              {/* Bottom Left Corner Content */}
+            </div>
+            <div className="border-container bottom-right-corner">
+              {/* Bottom Right Corner Content */}
+            </div>
 
-          {/* Borders */}
-          <div className="border-container top-border">
-            <TopBorder />
-          </div>
-          <div className="border-container bottom-border">
-            {/* Bottom Border Content */}
-          </div>
-          <div className="border-container left-border">
-            {/* Left Border Content */}
-          </div>
-          <div className="border-container right-border">
-            {/* Right Border Content */}
-          </div>
+            {/* Borders */}
+            <div className="border-container top-border">
+              <TopBorder />
+            </div>
+            <div className="border-container bottom-border">
+              {/* Bottom Border Content */}
+            </div>
+            <div className="border-container left-border">
+              {/* Left Border Content */}
+            </div>
+            <div className="border-container right-border">
+              {/* Right Border Content */}
+            </div>
 
-          {/* Main Content */}
-          <div className="main-section">
-            <div className="container">
-              {/* Left Column - Menu Bubbles */}
-              <div className="leftColumn">
-                <PostsProvider />
-              </div>
+            {/* Main Content */}
+            <div className="main-section">
+              <div className="container">
+                {/* Left Column - Menu Bubbles */}
+                <div className="leftColumn">
+                  <PostsProvider />
+                </div>
 
-              {/* Right Column - Content Area */}
-              <div className="rightColumn">
-                <ClientSideMotion>{children}</ClientSideMotion>
+                {/* Right Column - Content Area */}
+                <div className="rightColumn">
+                  <ClientSideMotion>{children}</ClientSideMotion>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </AuthProvider>
       </body>
     </html>
   );

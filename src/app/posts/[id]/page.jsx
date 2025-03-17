@@ -42,6 +42,12 @@ export default function Post({ params }) {
     return <div className={styles.error}>Post not found</div>;
   }
 
+  // Create a description object that matches the expected format for the Description component
+  const description = {
+    tracklist: post.tracklist || [],
+    credits: post.credits || [],
+  };
+
   return (
     <div className={styles.postsWrapper}>
       <div className={styles.postContainer}>
@@ -56,7 +62,7 @@ export default function Post({ params }) {
           ></iframe>
         </div>
         <div className={styles.postDescription}>
-          <Description description={post.description} />
+          <Description description={description} />
         </div>
       </div>
     </div>

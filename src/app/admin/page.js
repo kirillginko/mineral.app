@@ -1,36 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import styles from "../styles/AdminStyles.module.css";
 
 export default function AdminPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [youtubeLink, setYoutubeLink] = useState("");
   const [videoPreview, setVideoPreview] = useState(null);
+  const [posts, setPosts] = useState([]);
 
-  const createDailyPost = async () => {
+  // Check authentication and redirect if not admin
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+    } else if (status === "authenticated" && session?.user?.role !== "ADMIN") {
+      router.push("/");
+    } else if (status === "authenticated") {
+      // Fetch posts if authenticated
+      fetchPosts();
+    }
+  }, [status, session, router]);
+
+  const fetchPosts = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
-      setResult(null);
-
-      const response = await fetch("/api/daily-video", {
-        method: "GET",
-      });
-
-      const data = await response.json();
-
+      const response = await fetch("/api/posts");
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create daily post");
+        throw new Error("Failed to fetch posts");
       }
-
-      setResult(data);
+      const data = await response.json();
+      setPosts(data);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
+      console.error("Error fetching posts:", err);
     }
   };
 
@@ -96,12 +102,15 @@ export default function AdminPage() {
       setError(null);
       setResult(null);
 
-      const response = await fetch("/api/daily-video", {
+      const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ videoId: videoPreview.id }),
+        body: JSON.stringify({
+          videoId: videoPreview.id,
+          authorId: session?.user?.id,
+        }),
       });
 
       const data = await response.json();
@@ -113,6 +122,9 @@ export default function AdminPage() {
       setResult(data);
       setYoutubeLink(""); // Clear the input after successful submission
       setVideoPreview(null); // Clear the preview
+
+      // Refresh the posts list
+      fetchPosts();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -120,18 +132,53 @@ export default function AdminPage() {
     }
   };
 
+  const deletePost = async (postId) => {
+    if (!confirm("Are you sure you want to delete this post?")) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete post");
+      }
+
+      // Refresh posts after deletion
+      fetchPosts();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    router.push("/");
+  };
+
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return <div className={styles.loading}>Loading...</div>;
+  }
+
+  // If not authenticated or not an admin, the useEffect will redirect
+  if (status !== "authenticated" || session?.user?.role !== "ADMIN") {
+    return null;
+  }
+
   return (
     <div className={styles.adminContainer}>
-      <h1 className={styles.adminTitle}>Music App Admin</h1>
-
-      <div className={styles.adminSection}>
-        <h2>Daily Video Post</h2>
-        <button
-          className={styles.adminButton}
-          onClick={createDailyPost}
-          disabled={isLoading}
-        >
-          {isLoading ? "Creating..." : "Create Daily Post"}
+      <div className={styles.adminHeader}>
+        <h1 className={styles.adminTitle}>Music App Admin</h1>
+        <button onClick={handleSignOut} className={styles.signOutButton}>
+          Sign Out
         </button>
       </div>
 
@@ -206,29 +253,49 @@ export default function AdminPage() {
         <div className={styles.resultContainer}>
           <h3>New Post Created</h3>
           <p>
-            <strong>Title:</strong> {result.post.title}
+            <strong>Title:</strong> {result.title}
           </p>
           <p>
-            <strong>Channel:</strong> {result.post.channelTitle}
+            <strong>Channel:</strong> {result.channelTitle}
           </p>
           <p>
-            <strong>Video ID:</strong> {result.post.videoId}
+            <strong>Video ID:</strong> {result.videoId}
           </p>
-
-          {result.post.description.tracklist && (
-            <div>
-              <h4>Tracklist:</h4>
-              <ul>
-                {result.post.description.tracklist.map((track, index) => (
-                  <li key={index}>
-                    {track.time} - {track.title}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
       )}
+
+      <div className={styles.adminSection}>
+        <h2>Manage Posts</h2>
+        {posts.length === 0 ? (
+          <p>No posts found</p>
+        ) : (
+          <div className={styles.postsGrid}>
+            {posts.map((post) => (
+              <div key={post.id} className={styles.postCard}>
+                <div className={styles.postCardHeader}>
+                  <h3>{post.title}</h3>
+                  <button
+                    onClick={() => deletePost(post.id)}
+                    className={styles.deleteButton}
+                    disabled={isLoading}
+                  >
+                    Delete
+                  </button>
+                </div>
+                <div className={styles.postCardThumbnail}>
+                  <img
+                    src={`https://img.youtube.com/vi/${post.videoId}/mqdefault.jpg`}
+                    alt={post.title}
+                  />
+                </div>
+                <p className={styles.postCardDate}>
+                  {new Date(post.publishDate).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
