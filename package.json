@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "prisma generate && next build",
+    "build": "prisma generate --no-engine && next build",
     "dev": "next dev",
     "start": "next start",
     "lint": "next lint",
@@ -12,7 +12,7 @@
   "dependencies": {
     "@prisma/client": "^6.5.0",
     "axios": "^1.8.3",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "framer-motion": "^12.4.11",
     "install": "^0.13.0",
     "next": "15.2.1",
@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/react": "19.0.10",
     "eslint": "^9",
     "eslint-config-next": "15.2.1",
