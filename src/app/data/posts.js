@@ -1,4 +1,8 @@
-const posts = [
+import fs from "fs/promises";
+import path from "path";
+
+// Default initial posts
+const initialPosts = [
   {
     id: "1",
     title: "11.03.2025",
@@ -29,7 +33,7 @@ const posts = [
         { role: "Copyright ©", name: "Enja Records Matthias Winckelmann GmbH" },
       ],
     },
-    videoId: "fPggjsFr55c", // Example: YouTube video ID
+    videoId: "fPggjsFr55c",
   },
   {
     id: "2",
@@ -41,7 +45,7 @@ const posts = [
       ],
       credits: [{ role: "Artist", name: "Artist Name" }],
     },
-    videoId: "x-qqE7nPlAk", // Example: YouTube video ID
+    videoId: "x-qqE7nPlAk",
   },
   {
     id: "3",
@@ -53,7 +57,7 @@ const posts = [
       ],
       credits: [{ role: "Artist", name: "Artist Name" }],
     },
-    videoId: "44WVPMYuqys", // Example: YouTube video ID
+    videoId: "44WVPMYuqys",
   },
   {
     id: "4",
@@ -65,8 +69,59 @@ const posts = [
       ],
       credits: [{ role: "Artist", name: "Artist Name" }],
     },
-    videoId: "IyvqVDAGU0s", // Example: YouTube video ID
+    videoId: "IyvqVDAGU0s",
   },
 ];
 
-export default posts;
+// Path to the JSON file that will store posts
+const JSON_FILE_PATH = path.join(
+  process.cwd(),
+  "src",
+  "app",
+  "data",
+  "posts.json"
+);
+
+// Function to initialize the posts file if it doesn't exist
+async function initPostsFile() {
+  try {
+    await fs.access(JSON_FILE_PATH);
+  } catch (error) {
+    // File doesn't exist, create it with initial posts
+    await fs.writeFile(JSON_FILE_PATH, JSON.stringify(initialPosts, null, 2));
+  }
+}
+
+// Function to get all posts
+async function getAllPosts() {
+  await initPostsFile();
+  const postsJson = await fs.readFile(JSON_FILE_PATH, "utf8");
+  return JSON.parse(postsJson);
+}
+
+// Function to add a new post
+async function addPost(post) {
+  const posts = await getAllPosts();
+  posts.unshift(post); // Add to the beginning
+  await fs.writeFile(JSON_FILE_PATH, JSON.stringify(posts, null, 2));
+  return post;
+}
+
+// Function to get a post by ID
+async function getPostById(id) {
+  const posts = await getAllPosts();
+  return posts.find((post) => post.id === id) || null;
+}
+
+// Function to delete a post
+async function deletePost(id) {
+  const posts = await getAllPosts();
+  const updatedPosts = posts.filter((post) => post.id !== id);
+  await fs.writeFile(JSON_FILE_PATH, JSON.stringify(updatedPosts, null, 2));
+}
+
+// For client-side import compatibility (Next.js)
+export default initialPosts;
+
+// For server-side usage
+export { getAllPosts, addPost, getPostById, deletePost };

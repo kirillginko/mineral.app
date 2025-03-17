@@ -1,8 +1,11 @@
-import posts from "./data/posts";
+import { getAllPosts } from "./data/posts";
 import styles from "./styles/PostStyles.module.css";
 import Description from "./components/Description";
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Fetch posts from the server
+  const posts = await getAllPosts();
+
   return (
     <div className={styles.postsWrapper}>
       {posts.map((post) => (

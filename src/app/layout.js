@@ -1,8 +1,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import ClientSideMotion from "./components/ClientSideMotion";
-import Menu from "./components/Menu";
-import posts from "./data/posts";
+import PostsProvider from "./components/PostsProvider";
 import TopBorder from "./components/TopBorder";
 import CornerImage from "./components/CornerImage";
 
@@ -77,7 +76,7 @@ export default function RootLayout({ children }) {
             <div className="container">
               {/* Left Column - Menu Bubbles */}
               <div className="leftColumn">
-                <Menu posts={posts} />
+                <PostsProvider />
               </div>
 
               {/* Right Column - Content Area */}

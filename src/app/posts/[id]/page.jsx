@@ -1,18 +1,45 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import React from "react";
-import posts from "../../data/posts";
 import styles from "../../styles/PostStyles.module.css";
 import Description from "../../components/Description";
 
 export default function Post({ params }) {
   const unwrappedParams = React.use(params);
   const { id } = unwrappedParams;
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const post = posts.find((p) => p.id === id);
+  useEffect(() => {
+    async function fetchPost() {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/posts/${id}`);
 
-  if (!post) {
-    return <div>Post not found</div>;
+        if (!response.ok) {
+          throw new Error("Post not found");
+        }
+
+        const data = await response.json();
+        setPost(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPost();
+  }, [id]);
+
+  if (loading) {
+    return <div className={styles.loading}>Loading...</div>;
+  }
+
+  if (error || !post) {
+    return <div className={styles.error}>Post not found</div>;
   }
 
   return (
