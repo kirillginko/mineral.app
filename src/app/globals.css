@@ -10,6 +10,34 @@
   }
 }
 
+@font-face {
+  font-family: var(--font-asca);
+  src: url("/fonts/ASCA.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: var(--font-twentyfive);
+  src: url("/fonts/205tf.woff2") format("woff2");
+}
+
+h2 {
+  font-family: var(--font-asca);
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+p {
+  font-family: var(--font-twentyfive);
+  font-size: 1rem;
+  font-weight: 100;
+}
+
+span {
+  font-family: var(--font-twentyfive);
+  font-size: 0.7rem;
+  font-weight: 100;
+}
+
 html,
 body {
   height: 100%;
