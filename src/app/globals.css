@@ -20,6 +20,21 @@
   src: url("/fonts/205tf.woff2") format("woff2");
 }
 
+@font-face {
+  font-family: var(--font-alternative1);
+  src: url("/fonts/alternative1.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: var(--font-alternative2);
+  src: url("/fonts/alternative2.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: var(--font-alternative3);
+  src: url("/fonts/alternative3.woff2") format("woff2");
+}
+
 h2 {
   font-family: var(--font-asca);
   font-size: 2rem;
@@ -29,13 +44,13 @@ h2 {
 p {
   font-family: var(--font-twentyfive);
   font-size: 1rem;
-  font-weight: 100;
+  font-weight: 400;
 }
 
 span {
   font-family: var(--font-twentyfive);
   font-size: 0.7rem;
-  font-weight: 100;
+  font-weight: 400;
 }
 
 html,
@@ -45,6 +60,10 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+}
+a {
+  text-decoration: none;
+  color: #000;
 }
 
 .page-layout {
@@ -124,13 +143,14 @@ body {
   grid-row: 2;
   background-color: #ddd9c8;
   height: 100%;
+  overflow: hidden;
 }
 
 .container {
   display: flex;
   background-color: #ddd9c8;
-  overflow: hidden;
   height: 100%;
+  overflow: hidden;
 }
 
 .leftColumn {
@@ -140,15 +160,22 @@ body {
   overflow-y: auto;
   height: 100%;
   box-sizing: border-box;
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 .rightColumn {
   flex: 1;
   background-color: #ddd9c8;
   overflow-y: auto;
-  height: calc(100vh - 124px); /* Account for top and bottom borders + gaps */
-  padding: 20px;
+  height: 100%;
   margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 

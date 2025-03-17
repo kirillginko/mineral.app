@@ -1,7 +1,7 @@
 const posts = [
   {
     id: "1",
-    title: "Post 1",
+    title: "11.03.2025",
     description: {
       tracklist: [
         { time: "00:00", title: "Catania" },
@@ -33,7 +33,7 @@ const posts = [
   },
   {
     id: "2",
-    title: "Post 2",
+    title: "11.04.2025",
     description: {
       tracklist: [
         { time: "00:00", title: "Track 1" },
@@ -45,7 +45,7 @@ const posts = [
   },
   {
     id: "3",
-    title: "Post 3",
+    title: "11.05.2025",
     description: {
       tracklist: [
         { time: "00:00", title: "Track 1" },
@@ -54,6 +54,18 @@ const posts = [
       credits: [{ role: "Artist", name: "Artist Name" }],
     },
     videoId: "44WVPMYuqys", // Example: YouTube video ID
+  },
+  {
+    id: "4",
+    title: "11.06.2025",
+    description: {
+      tracklist: [
+        { time: "00:00", title: "Track 1" },
+        { time: "04:30", title: "Track 2" },
+      ],
+      credits: [{ role: "Artist", name: "Artist Name" }],
+    },
+    videoId: "IyvqVDAGU0s", // Example: YouTube video ID
   },
 ];
 

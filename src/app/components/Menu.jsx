@@ -9,12 +9,12 @@ export default function Menu({ posts }) {
     <div>
       <div className={styles.menuContainer}>
         <div className={styles.menuImage}>
-          {/* <Image
+          <Image
             src="https://res.cloudinary.com/dtps5ugbf/image/upload/v1742168496/mask_kvw8co.webp"
             alt="Mineral.ltd"
             width={600}
-            height={600}
-          /> */}
+            height={550}
+          />
         </div>
         <div className={styles.menuTitle}>
           <h2>Recent Posts:</h2>
@@ -30,6 +30,11 @@ export default function Menu({ posts }) {
               </motion.div>
             </Link>
           ))}
+          <Link href="/" passHref>
+            <motion.div className={styles.menuItem} whileHover={{ scale: 1.1 }}>
+              All Posts
+            </motion.div>
+          </Link>
         </div>
       </div>
     </div>

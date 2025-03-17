@@ -5,16 +5,33 @@ import Menu from "./components/Menu";
 import posts from "./data/posts";
 import TopBorder from "./components/TopBorder";
 import CornerImage from "./components/CornerImage";
+
 const ASCAfont = localFont({
   src: "./fonts/ASCA.ttf",
   variable: "--font-asca",
-  weight: "100 900",
+  weight: "100 200 300 400 500 600 700 800 900",
 });
 
 const TwentyFiveTF = localFont({
   src: "./fonts/205tf.woff2",
   variable: "--font-twentyfive",
-  weight: "100 900",
+  weight: "100 200 300 400 500 600 700 800 900",
+});
+
+const Alternative1 = localFont({
+  src: "./fonts/alternative1.woff2",
+  variable: "--font-alternative1",
+  weight: "100 200 300 400 500 600 700 800 900",
+});
+const Alternative2 = localFont({
+  src: "./fonts/alternative2.woff2",
+  variable: "--font-alternative2",
+  weight: "100 200 300 400 500 600 700 800 900",
+});
+const Alternative3 = localFont({
+  src: "./fonts/alternative3.woff2",
+  variable: "--font-alternative3",
+  weight: "100 200 300 400 500 600 700 800 900",
 });
 
 export const metadata = {
@@ -25,7 +42,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${ASCAfont.variable} ${TwentyFiveTF.variable}`}>
+      <body
+        className={`${ASCAfont.variable} ${TwentyFiveTF.variable} ${Alternative1.variable} ${Alternative2.variable} ${Alternative3.variable}`}
+      >
         <div className="page-layout">
           {/* Corners */}
           <div className="border-container top-left-corner"></div>
