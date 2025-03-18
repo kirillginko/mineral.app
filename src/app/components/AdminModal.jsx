@@ -259,35 +259,38 @@ export function AdminModal({ isOpen, onClose }) {
           ×
         </button>
 
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${
-              activeTab === "profile" ? styles.activeTab : ""
-            }`}
-            onClick={() => setActiveTab("profile")}
-          >
-            Profile
-          </button>
-          <button
-            className={`${styles.tab} ${
-              activeTab === "posts" ? styles.activeTab : ""
-            }`}
-            onClick={() => setActiveTab("posts")}
-          >
-            Manage Posts
-          </button>
-          <button
-            className={`${styles.tab} ${
-              activeTab === "add" ? styles.activeTab : ""
-            }`}
-            onClick={() => setActiveTab("add")}
-          >
-            Add Post
-          </button>
-        </div>
+        {session?.user?.role === "ADMIN" ? (
+          <div className={styles.tabs}>
+            <button
+              className={`${styles.tab} ${
+                activeTab === "profile" ? styles.activeTab : ""
+              }`}
+              onClick={() => setActiveTab("profile")}
+            >
+              Profile
+            </button>
+            <button
+              className={`${styles.tab} ${
+                activeTab === "posts" ? styles.activeTab : ""
+              }`}
+              onClick={() => setActiveTab("posts")}
+            >
+              Manage Posts
+            </button>
+            <button
+              className={`${styles.tab} ${
+                activeTab === "add" ? styles.activeTab : ""
+              }`}
+              onClick={() => setActiveTab("add")}
+            >
+              Add Post
+            </button>
+          </div>
+        ) : null}
 
         <div className={styles.tabContent}>
-          {activeTab === "profile" && (
+          {/* Profile tab is always shown */}
+          {(activeTab === "profile" || !session?.user?.role === "ADMIN") && (
             <div className={styles.section}>
               <h2>Your Profile</h2>
               <div className="bg-white rounded-lg shadow p-6">
@@ -298,135 +301,140 @@ export function AdminModal({ isOpen, onClose }) {
             </div>
           )}
 
-          {activeTab === "posts" && (
-            <div className={styles.section}>
-              <h2>Manage Posts</h2>
+          {/* Admin-only tabs */}
+          {session?.user?.role === "ADMIN" && (
+            <>
+              {activeTab === "posts" && (
+                <div className={styles.section}>
+                  <h2>Manage Posts</h2>
 
-              {postError && (
-                <div className={styles.errorMessage}>{postError}</div>
+                  {postError && (
+                    <div className={styles.errorMessage}>{postError}</div>
+                  )}
+
+                  {posts.length === 0 ? (
+                    <p>No posts found</p>
+                  ) : (
+                    <div className={styles.postsGrid}>
+                      {posts.map((post) => (
+                        <div key={post.id} className={styles.postCard}>
+                          <div className={styles.postCardHeader}>
+                            <h3>{post.title}</h3>
+                            <button
+                              onClick={(e) => initiateDeletePost(post, e)}
+                              className={styles.deleteButton}
+                              disabled={isLoading}
+                              style={{
+                                cursor: isLoading ? "not-allowed" : "pointer",
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                          <div className={styles.postCardThumbnail}>
+                            <img
+                              src={`https://img.youtube.com/vi/${post.videoId}/mqdefault.jpg`}
+                              alt={post.title}
+                            />
+                          </div>
+                          <p className={styles.postCardDate}>
+                            {new Date(post.publishDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
 
-              {posts.length === 0 ? (
-                <p>No posts found</p>
-              ) : (
-                <div className={styles.postsGrid}>
-                  {posts.map((post) => (
-                    <div key={post.id} className={styles.postCard}>
-                      <div className={styles.postCardHeader}>
-                        <h3>{post.title}</h3>
-                        <button
-                          onClick={(e) => initiateDeletePost(post, e)}
-                          className={styles.deleteButton}
-                          disabled={isLoading}
-                          style={{
-                            cursor: isLoading ? "not-allowed" : "pointer",
-                          }}
-                        >
-                          Delete
-                        </button>
+              {activeTab === "add" && (
+                <div className={styles.section}>
+                  <h2>Add Post from YouTube Link</h2>
+                  <form onSubmit={previewVideo} className={styles.adminForm}>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="youtubeLink" className={styles.formLabel}>
+                        YouTube Link
+                      </label>
+                      <div className={styles.inputHelpText}>
+                        Enter a full YouTube video URL
                       </div>
-                      <div className={styles.postCardThumbnail}>
-                        <img
-                          src={`https://img.youtube.com/vi/${post.videoId}/mqdefault.jpg`}
-                          alt={post.title}
-                        />
+                      <input
+                        type="text"
+                        id="youtubeLink"
+                        value={youtubeLink}
+                        onChange={(e) => setYoutubeLink(e.target.value)}
+                        className={styles.formInput}
+                        placeholder="Enter YouTube URL"
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className={styles.adminButton}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Loading..." : "Preview Video"}
+                    </button>
+                  </form>
+
+                  {error && <div className={styles.errorMessage}>{error}</div>}
+
+                  {videoPreview && (
+                    <div className={styles.videoPreview}>
+                      <div className={styles.videoContainer}>
+                        <iframe
+                          src={`https://www.youtube.com/embed/${videoPreview.id}`}
+                          title="YouTube video player"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
                       </div>
-                      <p className={styles.postCardDate}>
-                        {new Date(post.publishDate).toLocaleDateString()}
+                      <div className={styles.videoDetails}>
+                        <h3>{videoPreview.title}</h3>
+                        <p className={styles.channelTitle}>
+                          {videoPreview.channelTitle}
+                        </p>
+                      </div>
+                      <button
+                        onClick={createPostFromPreview}
+                        className={styles.adminButton}
+                        disabled={isLoading}
+                      >
+                        {isLoading
+                          ? "Creating..."
+                          : "Create Post from This Video"}
+                      </button>
+                    </div>
+                  )}
+
+                  {result && (
+                    <div className={styles.resultContainer}>
+                      <h3>New Post Created</h3>
+                      <p>
+                        <strong>Title:</strong> {result.title}
+                      </p>
+                      <p>
+                        <strong>Channel:</strong> {result.channelTitle}
                       </p>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-          {activeTab === "add" && (
-            <div className={styles.section}>
-              <h2>Add Post from YouTube Link</h2>
-              <form onSubmit={previewVideo} className={styles.adminForm}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="youtubeLink" className={styles.formLabel}>
-                    YouTube Link
-                  </label>
-                  <div className={styles.inputHelpText}>
-                    Enter a full YouTube video URL
-                  </div>
-                  <input
-                    type="text"
-                    id="youtubeLink"
-                    value={youtubeLink}
-                    onChange={(e) => setYoutubeLink(e.target.value)}
-                    className={styles.formInput}
-                    placeholder="Enter YouTube URL"
-                    disabled={isLoading}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className={styles.adminButton}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Loading..." : "Preview Video"}
-                </button>
-              </form>
-
-              {error && <div className={styles.errorMessage}>{error}</div>}
-
-              {videoPreview && (
-                <div className={styles.videoPreview}>
-                  <div className={styles.videoContainer}>
-                    <iframe
-                      src={`https://www.youtube.com/embed/${videoPreview.id}`}
-                      title="YouTube video player"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  </div>
-                  <div className={styles.videoDetails}>
-                    <h3>{videoPreview.title}</h3>
-                    <p className={styles.channelTitle}>
-                      {videoPreview.channelTitle}
-                    </p>
-                  </div>
+              {/* Admin utilities section */}
+              <div className={styles.utilitySection}>
+                <h3>Admin Utilities</h3>
+                <div className={styles.utilityButtons}>
                   <button
-                    onClick={createPostFromPreview}
-                    className={styles.adminButton}
-                    disabled={isLoading}
+                    onClick={goToUpdateDescriptions}
+                    className={styles.utilityButton}
                   >
-                    {isLoading ? "Creating..." : "Create Post from This Video"}
+                    Update Post Descriptions
                   </button>
                 </div>
-              )}
-
-              {result && (
-                <div className={styles.resultContainer}>
-                  <h3>New Post Created</h3>
-                  <p>
-                    <strong>Title:</strong> {result.title}
-                  </p>
-                  <p>
-                    <strong>Channel:</strong> {result.channelTitle}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Admin utilities section */}
-          {session?.user?.role === "ADMIN" && (
-            <div className={styles.utilitySection}>
-              <h3>Admin Utilities</h3>
-              <div className={styles.utilityButtons}>
-                <button
-                  onClick={goToUpdateDescriptions}
-                  className={styles.utilityButton}
-                >
-                  Update Post Descriptions
-                </button>
               </div>
-            </div>
+            </>
           )}
         </div>
 

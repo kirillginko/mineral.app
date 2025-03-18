@@ -54,7 +54,11 @@ export default function TopBorder() {
           {status === "authenticated" ? (
             <>
               {userImage && (
-                <div className={styles.userAvatar}>
+                <div
+                  className={styles.userAvatar}
+                  onClick={() => setIsModalOpen(true)}
+                  style={{ cursor: "pointer" }}
+                >
                   <Image
                     src={userImage}
                     alt={session.user.name || "User avatar"}
@@ -70,7 +74,7 @@ export default function TopBorder() {
                     onClick={() => setIsModalOpen(true)}
                     className={styles.menuLink}
                   >
-                    Admin
+                    Manage Posts
                   </button>
                 )}
                 <button onClick={handleSignOut} className={styles.signOutBtn}>
