@@ -3,11 +3,14 @@ import prisma from "@/lib/prisma";
 
 // POST /api/posts/[id]/delete - Delete a post with minimal auth check
 export async function POST(request, { params }) {
-  console.log("Delete post request received for ID:", params.id);
+  // Await params before accessing its properties
+  const unwrappedParams = await params;
+  const id = unwrappedParams.id;
+  console.log("Delete post request received for ID:", id);
 
   try {
     // Get the post ID from the route parameters
-    const postId = params.id;
+    const postId = id;
 
     if (!postId) {
       return NextResponse.json(

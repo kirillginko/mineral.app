@@ -5,9 +5,13 @@ import prisma from "@/lib/prisma";
 // GET /api/posts/[id]/likes - Get all likes for a post
 export async function GET(request, { params }) {
   try {
+    // Await params before accessing its properties
+    const unwrappedParams = await params;
+    const id = unwrappedParams.id;
+
     const likes = await prisma.like.findMany({
       where: {
-        postId: params.id,
+        postId: id,
       },
       include: {
         author: {

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { UserProfile } from "./UserProfile";
 import styles from "../styles/AdminModal.module.css";
 import { useRouter } from "next/navigation";
+import { usePosts } from "../contexts/PostsContext";
 
 export function AdminModal({ isOpen, onClose }) {
   const { data: session, status } = useSession();
@@ -14,10 +15,12 @@ export function AdminModal({ isOpen, onClose }) {
   const [error, setError] = useState(null);
   const [youtubeLink, setYoutubeLink] = useState("");
   const [videoPreview, setVideoPreview] = useState(null);
-  const [posts, setPosts] = useState([]);
   const [userData, setUserData] = useState(null);
   const [activeTab, setActiveTab] = useState("profile"); // profile, posts, add
   const [postError, setPostError] = useState(null);
+
+  // Use the PostsContext
+  const { posts, fetchPosts, createPost, deletePost } = usePosts();
 
   // For confirmation dialog
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -58,24 +61,11 @@ export function AdminModal({ isOpen, onClose }) {
     setUserData(updatedUser);
   };
 
-  const fetchPosts = async () => {
-    try {
-      const response = await fetch("/api/posts");
-      if (!response.ok) {
-        throw new Error("Failed to fetch posts");
-      }
-      const data = await response.json();
-      setPosts(data);
-    } catch (err) {
-      console.error("Error fetching posts:", err);
-    }
-  };
-
   useEffect(() => {
     if (activeTab === "posts") {
       fetchPosts();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchPosts]);
 
   const extractVideoId = (url) => {
     const regExp =
@@ -136,27 +126,14 @@ export function AdminModal({ isOpen, onClose }) {
       setError(null);
       setResult(null);
 
-      const response = await fetch("/api/posts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          videoId: videoPreview.id,
-          authorId: session?.user?.id,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create post from video");
-      }
+      // Use the createPost function from context instead of direct fetch
+      const data = await createPost(videoPreview.id, session?.user?.id);
 
       setResult(data);
       setYoutubeLink("");
       setVideoPreview(null);
-      fetchPosts();
+
+      // No need to explicitly call fetchPosts as it's handled in the createPost function
     } catch (err) {
       setError(err.message);
     } finally {
@@ -196,39 +173,13 @@ export function AdminModal({ isOpen, onClose }) {
       setError(null);
       setPostError(null);
 
-      console.log(
-        `Sending POST request to delete endpoint for post: ${postId}`
-      );
+      // Use the deletePost function from context instead of direct fetch
+      await deletePost(postId);
 
-      // Use the dedicated delete endpoint
-      const response = await fetch(`/api/posts/${postId}/delete`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("Delete response status:", response.status);
-
-      let data;
-      try {
-        data = await response.json();
-        console.log("Delete response data:", data);
-      } catch (err) {
-        console.error("Error parsing response JSON:", err);
-        throw new Error("Server returned an invalid response");
-      }
-
-      if (!response.ok) {
-        console.error("Delete post error:", data);
-        throw new Error(data.error || "Failed to delete post");
-      }
-
-      console.log("Post deleted successfully:", data);
+      console.log("Post deleted successfully");
       alert(`Post "${postTitle}" deleted successfully!`);
 
-      // Refresh the posts list
-      fetchPosts();
+      // No need to explicitly call fetchPosts as it's handled in the deletePost function
     } catch (err) {
       console.error("Error in deletePost function:", err);
       setPostError(`Failed to delete post "${postTitle}": ${err.message}`);

@@ -6,11 +6,13 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 // GET /api/posts/[id] - Get a post by ID
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    // Await params before accessing its properties
+    const unwrappedParams = await params;
+    const id = unwrappedParams.id;
 
     const post = await prisma.post.findUnique({
       where: {
-        id: id,
+        id,
       },
       include: {
         author: true,
@@ -52,7 +54,11 @@ export async function GET(request, { params }) {
 
 // DELETE /api/posts/[id] - Delete a post
 export async function DELETE(request, { params }) {
-  console.log("DELETE request received for post ID:", params.id);
+  // Await params before accessing its properties
+  const unwrappedParams = await params;
+  const id = unwrappedParams.id;
+
+  console.log("DELETE request received for post ID:", id);
 
   try {
     // Check if user is authenticated and is an admin
@@ -91,12 +97,12 @@ export async function DELETE(request, { params }) {
     // Check if post exists
     const post = await prisma.post.findUnique({
       where: {
-        id: params.id,
+        id,
       },
     });
 
     if (!post) {
-      console.log("Post not found with ID:", params.id);
+      console.log("Post not found with ID:", id);
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
@@ -107,31 +113,31 @@ export async function DELETE(request, { params }) {
     await prisma.$transaction(async (tx) => {
       // Delete likes associated with the post
       const deletedLikes = await tx.like.deleteMany({
-        where: { postId: params.id },
+        where: { postId: id },
       });
       console.log(`Deleted ${deletedLikes.count} likes`);
 
       // Delete comments associated with the post
       const deletedComments = await tx.comment.deleteMany({
-        where: { postId: params.id },
+        where: { postId: id },
       });
       console.log(`Deleted ${deletedComments.count} comments`);
 
       // Delete tracklist entries associated with the post
       const deletedTracklist = await tx.tracklist.deleteMany({
-        where: { postId: params.id },
+        where: { postId: id },
       });
       console.log(`Deleted ${deletedTracklist.count} tracklist items`);
 
       // Delete credits associated with the post
       const deletedCredits = await tx.credit.deleteMany({
-        where: { postId: params.id },
+        where: { postId: id },
       });
       console.log(`Deleted ${deletedCredits.count} credits`);
 
       // Finally, delete the post itself
       await tx.post.delete({
-        where: { id: params.id },
+        where: { id },
       });
       console.log("Post deleted successfully");
     });
@@ -152,6 +158,10 @@ export async function DELETE(request, { params }) {
 
 // PATCH /api/posts/[id] - Update a post
 export async function PATCH(request, { params }) {
+  // Await params before accessing its properties
+  const unwrappedParams = await params;
+  const id = unwrappedParams.id;
+
   try {
     // Check if user is authenticated and is an admin
     const session = await getServerSession();
@@ -169,7 +179,7 @@ export async function PATCH(request, { params }) {
     // Check if post exists
     const post = await prisma.post.findUnique({
       where: {
-        id: params.id,
+        id,
       },
     });
 
@@ -180,7 +190,7 @@ export async function PATCH(request, { params }) {
     // Update the post
     const updatedPost = await prisma.post.update({
       where: {
-        id: params.id,
+        id,
       },
       data: {
         title,

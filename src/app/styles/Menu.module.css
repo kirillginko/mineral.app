@@ -49,3 +49,18 @@
   background-color: #000;
   color: #fff;
 }
+
+.retryButton {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: transparent;
+  border: 1px solid #fff;
+  color: #fff;
+  font-family: var(--font-asca);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retryButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}

@@ -5,9 +5,13 @@ import prisma from "@/lib/prisma";
 // GET /api/posts/[id]/comments - Get all comments for a post
 export async function GET(request, { params }) {
   try {
+    // Await params before accessing its properties
+    const unwrappedParams = await params;
+    const id = unwrappedParams.id;
+
     const comments = await prisma.comment.findMany({
       where: {
-        postId: params.id,
+        postId: id,
       },
       include: {
         author: {
@@ -44,6 +48,10 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Await params before accessing its properties
+    const unwrappedParams = await params;
+    const id = unwrappedParams.id;
+
     const body = await request.json();
     const { content } = body;
 
@@ -68,7 +76,7 @@ export async function POST(request, { params }) {
     // Check if post exists
     const post = await prisma.post.findUnique({
       where: {
-        id: params.id,
+        id,
       },
     });
 
@@ -81,7 +89,7 @@ export async function POST(request, { params }) {
       data: {
         content,
         authorId: user.id,
-        postId: params.id,
+        postId: id,
       },
       include: {
         author: {
@@ -114,6 +122,10 @@ export async function DELETE(request, { params }) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Await params before accessing its properties
+    const unwrappedParams = await params;
+    const id = unwrappedParams.id;
 
     // Get comment ID from the URL
     const { searchParams } = new URL(request.url);
