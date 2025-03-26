@@ -8,10 +8,12 @@ import { useVideoPlayer } from "../contexts/VideoPlayerContext";
 function NavigationHandlerContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { activeVideo, minimizeVideo, isMinimized } = useVideoPlayer();
+  const { activeVideo, minimizeVideo, isMinimized, preventMinimize } =
+    useVideoPlayer();
   const prevPath = useRef(pathname);
   const navigationCount = useRef(0);
   const postButtonClicksRef = useRef(0);
+  const isHandlingNavigation = useRef(false);
 
   // Handle navigation events (route changes)
   useEffect(() => {
@@ -21,9 +23,26 @@ function NavigationHandlerContent() {
         `Navigation detected in handler: ${prevPath.current} -> ${pathname}`
       );
 
-      // Always minimize video on navigation
+      // Prevent any minimize operations during navigation to ensure continued playback
+      preventMinimize(2000); // Longer prevention time
+
+      // Make sure video is minimized but still playing on navigation
       if (!isMinimized) {
+        isHandlingNavigation.current = true;
+        // Force to keep playing in minimized state
         minimizeVideo();
+
+        // Ensure this is given a chance to complete before continuing
+        // Longer timeout to ensure everything completes
+        setTimeout(() => {
+          isHandlingNavigation.current = false;
+          console.log("Navigation state handler completed");
+
+          // Reset prevention flag after navigation completes
+          preventMinimize(500);
+        }, 1000);
+      } else {
+        console.log("Video already in minimized state during navigation");
       }
 
       // Track navigation count for debugging
@@ -33,7 +52,14 @@ function NavigationHandlerContent() {
       // Update reference for next comparison
       prevPath.current = pathname;
     }
-  }, [pathname, searchParams, activeVideo, minimizeVideo, isMinimized]);
+  }, [
+    pathname,
+    searchParams,
+    activeVideo,
+    minimizeVideo,
+    isMinimized,
+    preventMinimize,
+  ]);
 
   // Listen to post button clicks specifically
   useEffect(() => {
@@ -41,6 +67,11 @@ function NavigationHandlerContent() {
 
     // Handler for post button clicks
     const handlePostButtonClick = (e) => {
+      // Skip if we're already handling navigation
+      if (isHandlingNavigation.current) {
+        return;
+      }
+
       // Look for any button with data-post attributes or within post classes
       const postButton = e.target.closest(
         "[data-post-id], [data-post], .post-button, .post-action"
@@ -52,7 +83,7 @@ function NavigationHandlerContent() {
           `Post button click detected (#${postButtonClicksRef.current})`
         );
 
-        // Ensure video is minimized
+        // Ensure video is minimized but continue playing
         if (!isMinimized) {
           minimizeVideo();
         }
@@ -83,6 +114,11 @@ function NavigationHandlerContent() {
 
     // Click events for local navigation
     const handleClick = (e) => {
+      // Skip if we're already handling navigation
+      if (isHandlingNavigation.current) {
+        return;
+      }
+
       // Look for any navigation-related elements
       const navElement = e.target.closest(
         'a, button[type="submit"], [role="link"]'
@@ -90,6 +126,9 @@ function NavigationHandlerContent() {
 
       if (navElement && activeVideo && !isMinimized) {
         console.log("Potential navigation click detected");
+
+        // Ensure video continues playing while minimized during navigation
+        preventMinimize(1000);
         minimizeVideo();
       }
     };
@@ -98,6 +137,9 @@ function NavigationHandlerContent() {
     const handlePopState = () => {
       if (activeVideo && !isMinimized) {
         console.log("History navigation detected");
+
+        // Ensure video continues playing while minimized during navigation
+        preventMinimize(1000);
         minimizeVideo();
       }
     };
@@ -111,7 +153,7 @@ function NavigationHandlerContent() {
       document.removeEventListener("click", handleClick, { capture: true });
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [activeVideo, isMinimized, minimizeVideo]);
+  }, [activeVideo, isMinimized, minimizeVideo, preventMinimize]);
 
   // This is a headless component - doesn't render anything
   return null;

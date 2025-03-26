@@ -8,11 +8,64 @@ export function VideoPlayerWrapper() {
   const { activeVideo, isMinimized, minimizeVideo } = useVideoPlayer();
   const originalClickHandlers = useRef(new Map());
   const initialized = useRef(false);
+  const debugEnabled = useRef(true);
 
-  // Global event interception
+  // Debug logger
+  const debugLog = (...args) => {
+    if (debugEnabled.current && typeof console !== "undefined") {
+      console.log("[VideoPlayerWrapper]", ...args);
+    }
+  };
+
+  // Global event interception - improved version
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
+
+    debugLog("Initializing event interception");
+
+    // Add global post click handler to ensure video minimizes
+    const handlePostElementClicks = (e) => {
+      if (!activeVideo) return;
+
+      // Skip if clicking on video elements
+      if (
+        e.target.closest(".videoContainer") ||
+        e.target.closest("[data-player]") ||
+        e.target.closest("[data-player-control]") ||
+        e.target.closest(".minimizedPlayerContainer") ||
+        e.target.closest('[data-testid="minimized-player"]') ||
+        e.target.closest(".minimizeButton")
+      ) {
+        debugLog("Click inside video elements - ignoring");
+        return;
+      }
+
+      // If any post element or interactive element is clicked, minimize the video if not already minimized
+      const isPostElement = e.target.closest(
+        '.postContainer, [data-post="true"], [data-post-id], .post-action, [data-post-action], .interactive, .post-content-wrapper, .comment-section, .like-button'
+      );
+
+      // Check if clicking on a video link or element
+      const isVideoElement = e.target.closest("[data-video-id]");
+      const clickedVideoId = isVideoElement?.getAttribute("data-video-id");
+
+      // Handle video switching more gracefully
+      if (clickedVideoId && clickedVideoId !== activeVideo.videoId) {
+        // Different video clicked - we'll handle this in the respective component's click handler
+        debugLog(`Different video clicked: ${clickedVideoId}`);
+        // Just minimize the current one - the playVideo function will handle the switch
+        if (!isMinimized) {
+          minimizeVideo();
+        }
+      }
+      // Otherwise handle regular post elements that should trigger minimize
+      else if (isPostElement && !isMinimized) {
+        // Only minimize if not already minimized
+        debugLog("Post element clicked - minimizing video");
+        minimizeVideo();
+      }
+    };
 
     // Override document.querySelector to intercept post queries
     const originalQuerySelector = document.querySelector.bind(document);
@@ -34,11 +87,11 @@ export function VideoPlayerWrapper() {
 
           // Override click handler
           result.onclick = function (e) {
-            console.log("Intercepted post click");
+            debugLog("Intercepted post click");
 
             // If we have a playing video, minimize it first
             if (activeVideo && !isMinimized) {
-              console.log("Force minimizing before navigation");
+              debugLog("Force minimizing before navigation");
               minimizeVideo();
 
               // Small delay to ensure minimization happens
@@ -49,7 +102,7 @@ export function VideoPlayerWrapper() {
                 if (originalHandler) {
                   originalHandler.call(this, e);
                 }
-              }, 50);
+              }, 100); // Slightly longer delay
 
               return false; // Prevent immediate navigation
             }
@@ -66,42 +119,15 @@ export function VideoPlayerWrapper() {
       return result;
     };
 
-    // Intercept all click events
-    const clickHandler = (e) => {
-      // Skip if already handled or no video
-      if (!activeVideo) return;
-
-      // Don't intercept clicks on the minimized player
-      if (
-        e.target.closest(".minimizedPlayerContainer") ||
-        e.target.closest('[data-testid="minimized-player"]')
-      ) {
-        return;
-      }
-
-      // Skip video container clicks
-      if (e.target.closest(".videoContainer")) {
-        return;
-      }
-
-      // Determine if this is likely a navigation action
-      const potentialNavigation = e.target.closest(
-        'a, button:not([data-player-control]), [role="button"], .post-action:not([data-player-control]), .interactive, [data-post-action], [data-post="true"], .postContainer'
-      );
-
-      if (potentialNavigation && activeVideo && !isMinimized) {
-        console.log("Potential navigation detected - minimizing video");
-        minimizeVideo();
-
-        // We don't stop propagation to allow the click to proceed
-      }
-    };
-
     // Use capture to get events before normal handlers
-    document.addEventListener("click", clickHandler, { capture: true });
+    document.addEventListener("click", handlePostElementClicks, {
+      capture: true,
+    });
 
     return () => {
-      document.removeEventListener("click", clickHandler, { capture: true });
+      document.removeEventListener("click", handlePostElementClicks, {
+        capture: true,
+      });
       document.querySelector = originalQuerySelector;
     };
   }, [activeVideo, isMinimized, minimizeVideo]);
@@ -125,7 +151,7 @@ export function VideoPlayerWrapper() {
 
           // Override auto-pausing behavior
           if (isMinimized && event.data === YT.PlayerState.PAUSED) {
-            console.log("Preventing auto-pause in minimized player");
+            debugLog("Preventing auto-pause in minimized player");
             setTimeout(() => {
               try {
                 event.target.playVideo();

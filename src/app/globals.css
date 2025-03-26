@@ -222,3 +222,80 @@ main {
   overflow-y: auto;
   padding-bottom: 40px;
 }
+
+/* Video Player Styles - Enhanced for persistence */
+/* Global styles to ensure the minimized player is visible */
+[data-testid="minimized-player"] {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 10000 !important;
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  pointer-events: auto !important;
+  width: 320px !important;
+  max-width: 30vw !important;
+  aspect-ratio: 16/9 !important;
+  background-color: #000 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  outline: 2px solid rgba(255, 255, 255, 0.3) !important;
+  animation: minimizeVideo 0.3s ease-out forwards !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  will-change: transform !important;
+  transition: opacity 0.3s ease !important;
+}
+
+/* Force player to remain visible during Next.js page transitions */
+html body [data-testid="minimized-player"] {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+@keyframes minimizeVideo {
+  from {
+    transform: translateY(20px) scale(0.9);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Ensure the video container in minimized player is clickable */
+[data-testid="minimized-player"] .youtubePlayerContainer,
+[data-testid="minimized-player"] .youtubePlayerContainer iframe {
+  pointer-events: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Ensure buttons are clickable */
+[data-testid="minimized-player"] button,
+[data-player-control] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 10001 !important;
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+  [data-testid="minimized-player"] {
+    bottom: 10px !important;
+    right: 10px !important;
+    width: 240px !important;
+    max-width: 50vw !important;
+  }
+}
+
+@media (max-width: 480px) {
+  [data-testid="minimized-player"] {
+    width: 180px !important;
+    max-width: 60vw !important;
+  }
+}

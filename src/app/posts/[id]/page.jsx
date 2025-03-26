@@ -5,18 +5,22 @@ import React from "react";
 import styles from "../../styles/PostStyles.module.css";
 import { PostHeader } from "../../components/PostHeader";
 import PostContent from "../../components/PostContent";
+import { useVideoPlayer } from "../../contexts/VideoPlayerContext";
 
 export default function Post({ params }) {
   // Unwrap params using React.use()
   const unwrappedParams = React.use(params);
+  const id = unwrappedParams.id;
+
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { activeVideo, isMinimized } = useVideoPlayer();
 
   useEffect(() => {
     async function fetchPost() {
       try {
-        const response = await fetch(`/api/posts/${unwrappedParams.id}`);
+        const response = await fetch(`/api/posts/${id}`);
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
         }
@@ -31,7 +35,14 @@ export default function Post({ params }) {
     }
 
     fetchPost();
-  }, [unwrappedParams.id]); // Use unwrappedParams instead of params
+
+    // Log video state when post page loads
+    if (activeVideo) {
+      console.log(
+        `Post page loaded with video: ${activeVideo.videoId}, minimized: ${isMinimized}`
+      );
+    }
+  }, [id, activeVideo, isMinimized]);
 
   if (loading) {
     return <div className={styles.loading}>Loading...</div>;

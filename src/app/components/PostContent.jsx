@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import styles from "../styles/PostStyles.module.css";
 import Description from "./Description";
 import { LikeButton } from "./LikeButton";
@@ -9,15 +10,46 @@ import { useVideoPlayer } from "../contexts/VideoPlayerContext";
 import { Minimize } from "lucide-react";
 
 export default function PostContent({ post }) {
+  const router = useRouter();
   const iframeRef = useRef(null);
   const playerRef = useRef(null);
   const [playerReady, setPlayerReady] = useState(false);
   const [origin, setOrigin] = useState("");
-  const { activeVideo, playVideo, minimizeVideo, isMinimized } =
-    useVideoPlayer();
+  const {
+    activeVideo,
+    playVideo,
+    minimizeVideo,
+    isMinimized,
+    registerPlayer,
+    unregisterPlayer,
+    pauseAllOtherVideos,
+    preventMinimize,
+    maximizeVideo,
+    updatePlaybackState,
+  } = useVideoPlayer();
 
   const isCurrentVideo = activeVideo?.videoId === post.videoId;
   const shouldShowVideo = !isMinimized || !isCurrentVideo;
+
+  // Handle post navigation - prevent default and use router
+  const handlePostNavigation = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Ensure video is minimized if playing, without stopping it
+    if (activeVideo && !isMinimized && isCurrentVideo) {
+      minimizeVideo();
+
+      // Small delay to ensure minimize happens before navigation
+      setTimeout(() => {
+        // Navigate to post using Next.js router
+        router.push(`/posts/${post.id}`);
+      }, 50);
+    } else {
+      // If already minimized or no video, navigate immediately
+      router.push(`/posts/${post.id}`);
+    }
+  };
 
   useEffect(() => {
     // Set origin once on client-side
@@ -59,6 +91,10 @@ export default function PostContent({ post }) {
               console.log(`Saved time before unmount: ${currentTime}`);
             }
           }
+
+          // Unregister the player
+          unregisterPlayer(post.videoId);
+
           playerRef.current.destroy();
           playerRef.current = null;
         } catch (error) {
@@ -66,7 +102,7 @@ export default function PostContent({ post }) {
         }
       }
     };
-  }, [isCurrentVideo]);
+  }, [isCurrentVideo, post.videoId, unregisterPlayer]);
 
   // Set up player once iframe is loaded
   useEffect(() => {
@@ -87,8 +123,36 @@ export default function PostContent({ post }) {
           onReady: (event) => {
             console.log(`Player ready for ${post.videoId}`);
             playerRef.current = event.target;
+
+            // Register the player instance with context
+            registerPlayer(post.videoId, event.target);
+
+            // If this is the active video and not minimized,
+            // ensure all other videos are paused
+            if (isCurrentVideo && !isMinimized) {
+              pauseAllOtherVideos(post.videoId);
+
+              // Update global playback state
+              updatePlaybackState({
+                isPlaying: true,
+                currentTime: event.target.getCurrentTime() || 0,
+              });
+            }
           },
           onStateChange: (event) => {
+            // Update global playback state when player state changes
+            try {
+              const currentTime = event.target.getCurrentTime();
+              const isPlaying = event.data === YT.PlayerState.PLAYING;
+
+              updatePlaybackState({
+                currentTime,
+                isPlaying,
+              });
+            } catch (e) {
+              console.error("Error updating global playback state:", e);
+            }
+
             // If video starts playing, update the active video
             if (event.data === window.YT.PlayerState.PLAYING) {
               console.log(
@@ -110,6 +174,11 @@ export default function PostContent({ post }) {
                         "videoPlayerTime",
                         currentTime.toString()
                       );
+
+                      // Update global state
+                      updatePlaybackState({
+                        currentTime,
+                      });
                     }
                   } catch (e) {
                     clearInterval(saveInterval);
@@ -125,16 +194,35 @@ export default function PostContent({ post }) {
     } catch (error) {
       console.error("Error initializing player:", error);
     }
-  }, [isCurrentVideo, isMinimized, post.id, post.videoId, playVideo]);
+  }, [
+    isCurrentVideo,
+    isMinimized,
+    post.id,
+    post.videoId,
+    playVideo,
+    registerPlayer,
+    pauseAllOtherVideos,
+    updatePlaybackState,
+  ]);
 
   // Handle the video container click
   const handleVideoContainerClick = (e) => {
     e.stopPropagation(); // Prevent bubbling to parent containers
     console.log(`Video container clicked: ${post.videoId}`);
 
-    // If this video isn't currently playing, play it
+    // Prevent minimize operations when interacting with the video
+    preventMinimize(1000);
+
+    // If this video isn't currently playing, play it (replacing any current video)
     if (!isCurrentVideo) {
+      console.log(`Switching to new video: ${post.videoId}`);
+      // If we already have an active video, we want to switch to minimized mode
+      // after changing videos (handled in playVideo function)
       playVideo(post.videoId, post.id);
+    } else if (isMinimized) {
+      // If this is the current video but minimized, maximize it
+      console.log(`Maximizing current video: ${post.videoId}`);
+      maximizeVideo();
     }
   };
 
@@ -162,26 +250,35 @@ export default function PostContent({ post }) {
     }
   };
 
-  // Handle navigation event when clicking on post content
+  // Enhanced post click handler to better handle minimizing videos
   const handlePostClick = (e) => {
     // Don't handle clicks on interactive elements or the video container
     if (
       e.target.closest(`.${styles.videoContainer}`) ||
       e.target.closest(
-        'a, button, [role="button"], input, textarea, select, .interactive'
+        'a, button, [role="button"], input, textarea, select, .interactive, [data-player-control]'
       )
     ) {
       return;
     }
 
-    // This is a post navigation click - if we have a playing video, minimize it
-    if (activeVideo && !isMinimized) {
-      console.log("Post navigation click detected - minimizing current video");
+    // Use router navigation instead of default browser navigation
+    handlePostNavigation(e);
+  };
+
+  // Add explicit handlers for interactive elements to ensure minimize happens
+  const handleLikeClick = () => {
+    if (activeVideo && !isMinimized && isCurrentVideo) {
+      console.log("Like clicked - ensuring video minimizes");
       minimizeVideo();
     }
+  };
 
-    // Note: We're not stopping propagation here intentionally
-    // to allow the containing app to handle navigation
+  // Capture any interaction with post elements to minimize video if needed
+  const ensureMinimize = () => {
+    if (activeVideo && !isMinimized && isCurrentVideo) {
+      minimizeVideo();
+    }
   };
 
   return (
@@ -195,6 +292,7 @@ export default function PostContent({ post }) {
         <div
           className={styles.videoContainer}
           onClick={handleVideoContainerClick}
+          data-player="true"
         >
           {origin && (
             <>
@@ -210,6 +308,7 @@ export default function PostContent({ post }) {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 id={`youtube-player-${post.videoId}`}
+                data-player="true"
               ></iframe>
               {isCurrentVideo && (
                 <button
@@ -226,23 +325,24 @@ export default function PostContent({ post }) {
         </div>
       )}
 
-      {/* Rest of post content with no click handler that would interfere with minimized video */}
-      <div className="post-content-wrapper">
+      {/* Rest of post content with click handler that minimizes the video */}
+      <div className="post-content-wrapper" onClick={ensureMinimize}>
         <div className={`${styles.videoActions} post-actions`}>
           <LikeButton
             postId={post.id}
             initialLikeCount={post.likeCount || 0}
             className="post-action interactive"
             data-post-action="like"
+            onClick={handleLikeClick}
           />
         </div>
 
-        <div className={styles.postDescription}>
+        <div className={styles.postDescription} onClick={ensureMinimize}>
           <Description description={post.description} videoId={post.videoId} />
         </div>
 
         {/* Comment section */}
-        <div className={styles.commentSectionWrapper}>
+        <div className={styles.commentSectionWrapper} onClick={ensureMinimize}>
           <CommentSection postId={post.id} />
         </div>
       </div>

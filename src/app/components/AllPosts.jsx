@@ -1,12 +1,37 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { usePosts } from "../contexts/PostsContext";
+import { useVideoPlayer } from "../contexts/VideoPlayerContext";
 import styles from "../styles/PostStyles.module.css";
 import PostContent from "./PostContent";
 import { PostHeader } from "./PostHeader";
 
 export default function AllPosts() {
+  const router = useRouter();
   const { posts, isLoading, error } = usePosts();
+  const { activeVideo, minimizeVideo, isMinimized } = useVideoPlayer();
+
+  // Handle post click with client-side navigation
+  const handlePostClick = (e, postId) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // If there's an active video, make sure it's minimized
+    if (activeVideo && !isMinimized) {
+      // Minimize without stopping playback
+      minimizeVideo();
+
+      // Small delay to ensure minimize happens before navigation
+      setTimeout(() => {
+        // Use router for client-side navigation
+        router.push(`/posts/${postId}`);
+      }, 50);
+    } else {
+      // If already minimized or no video, navigate immediately
+      router.push(`/posts/${postId}`);
+    }
+  };
 
   if (isLoading) {
     return <PostsLoadingSkeleton />;
@@ -37,7 +62,13 @@ export default function AllPosts() {
   return (
     <div className={styles.postsWrapper}>
       {posts.map((post) => (
-        <div key={post.id} className={styles.postContainer}>
+        <div
+          key={post.id}
+          className={styles.postContainer}
+          data-post-id={post.id}
+          data-post="true"
+          onClick={(e) => handlePostClick(e, post.id)}
+        >
           <PostHeader author={post.author} date={post.publishDate} />
           <PostContent post={post} />
         </div>

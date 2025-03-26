@@ -53,6 +53,11 @@ export default function RootLayout({ children }) {
       >
         <VideoPlayerProvider>
           <NavigationHandler />
+
+          {/* Place MinimizedVideoPlayer and VideoPlayerWrapper directly here for maximum persistence */}
+          <MinimizedVideoPlayer />
+          <VideoPlayerWrapper />
+
           <AuthProvider>
             <PostsProvider>
               <div className="page-layout">
@@ -99,10 +104,6 @@ export default function RootLayout({ children }) {
               </div>
             </PostsProvider>
           </AuthProvider>
-
-          {/* Minimized Video Player - outside PostsProvider for persistence across routes */}
-          <MinimizedVideoPlayer />
-          <VideoPlayerWrapper />
         </VideoPlayerProvider>
       </body>
     </html>
