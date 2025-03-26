@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useVideoPlayer } from "../contexts/VideoPlayerContext";
 
-export default function NavigationHandler() {
+// This inner component safely uses useSearchParams inside Suspense
+function NavigationHandlerContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { activeVideo, minimizeVideo, isMinimized } = useVideoPlayer();
@@ -114,4 +115,13 @@ export default function NavigationHandler() {
 
   // This is a headless component - doesn't render anything
   return null;
+}
+
+// Main component wraps the content in Suspense
+export default function NavigationHandler() {
+  return (
+    <Suspense fallback={null}>
+      <NavigationHandlerContent />
+    </Suspense>
+  );
 }
